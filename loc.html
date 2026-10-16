@@ -1,0 +1,148 @@
+{% extends "commonbase.html" %}
+{% block content %}
+
+<section class="inner-banner py-5">
+	<div class="w3l-breadcrumb py-lg-5">
+		<div class="container pt-4 pb-sm-4"></div>
+	</div>
+</section>
+
+<section class="w3l-contact py-5" id="contact">
+	<div class="container">
+		<div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width: 500px">
+			<h3 class="title-style">Auto Driver Registration</h3>
+		</div>
+		<div class="row contact-block">
+			<div class="col-md-12 contact-right">
+				<form method="POST" enctype="multipart/form-data">
+					{% csrf_token %}
+					<table>
+						<tr>
+							<td rowspan="9">
+								Select location from map
+								<div id="map" style="height: 400px; width: 500px; border: thick groove;"></div>
+							</td>
+						</tr>
+						<tr>
+							<td>Name</td>
+							<td><input type="text" class="form-control" name="name" pattern="[a-zA-Z ]+" required /></td>
+						</tr>
+						<tr>
+							<td>Address</td>
+							<td><textarea class="form-control" name="address" required></textarea></td>
+						</tr>
+						<tr>
+							<td>Email</td>
+							<td><input type="email" class="form-control" name="email" required /></td>
+						</tr>
+						<tr>
+							<td>Contact</td>
+							<td><input type="text" class="form-control" name="phone" maxlength="10" pattern="[6789][0-9]{9}" required /></td>
+						</tr>
+						<tr>
+							<td>Stand</td>
+							<td><input type="text" class="form-control" name="stand" required /></td>
+						</tr>
+						<tr>
+							<td>Image</td>
+							<td><input type="file" class="form-control" name="proof" required /></td>
+						</tr>
+						<tr>
+							<td>Password</td>
+							<td><input type="password" class="form-control" name="password" pattern="(?=.\d)(?=.[a-z])(?=.*[A-Z]).{8,}" title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" required /></td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><input type="submit" class="btn btn-primary" name="btnSubmit" required /></td>
+						</tr>
+					</table>
+					<input type="text" id="l1" name="l1" style="visibility: hidden;" required>
+					<input type="text" id="l2" name="l2" style="visibility: hidden;" required>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	var msg = "{{msg}}";
+	if (msg != "")
+		alert(msg);
+</script>
+
+<!-- Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Leaflet Geocoder Plugin -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+<script>
+	var map = L.map('map').setView([10.1076, 76.3457], 13);
+
+	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; OpenStreetMap contributors'
+	}).addTo(map);
+
+	var marker;
+
+	// Add search box
+	L.Control.geocoder({
+		defaultMarkGeocode: false
+	})
+	.on('markgeocode', function(e) {
+		var center = e.geocode.center;
+
+		// Set marker and form values
+		if (marker) {
+			map.removeLayer(marker);
+		}
+
+		marker = L.marker(center, { draggable: true }).addTo(map);
+		map.setView(center, 16);
+
+		document.getElementById('l1').value = center.lat.toFixed(5);
+		document.getElementById('l2').value = center.lng.toFixed(5);
+
+		marker.on('dragend', function () {
+			var pos = marker.getLatLng();
+			document.getElementById('l1').value = pos.lat.toFixed(5);
+			document.getElementById('l2').value = pos.lng.toFixed(5);
+		});
+	})
+	.addTo(map);
+
+	// Manual click-to-select location
+	map.on('click', function (e) {
+		var lat = e.latlng.lat.toFixed(5);
+		var lng = e.latlng.lng.toFixed(5);
+
+		document.getElementById('l1').value = lat;
+		document.getElementById('l2').value = lng;
+
+		if (marker) {
+			map.removeLayer(marker);
+		}
+
+		marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+		marker.on('dragend', function (event) {
+			var position = marker.getLatLng();
+			document.getElementById('l1').value = position.lat.toFixed(5);
+			document.getElementById('l2').value = position.lng.toFixed(5);
+		});
+	});
+</script>
+
+<style>
+	td, th {
+		padding: 10px;
+	}
+	html, body {
+		margin: 0;
+		padding: 0;
+	}
+</style>
+
+{% endblock %}
